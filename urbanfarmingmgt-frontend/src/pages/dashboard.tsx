@@ -6,9 +6,13 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { BarChart, Leaf, Droplets, Bug, DollarSign, Calendar, ArrowUpRight, ArrowDownRight, User, RefreshCw } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { BarChart, Leaf, Droplets, Bug, DollarSign, Calendar, ArrowUpRight, ArrowDownRight, User, RefreshCw, TrendingUp, AlertTriangle, CheckCircle, Clock } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import api from "@/lib/api"
+import { useRoleAuth } from "@/hooks/use-role-auth"
+import { RoleGuard, AdminOnly, ManagerOnly } from "@/components/role-guard"
+import { dashboardApi } from "@/services/api-integration"
 import { predictYield, predictWaterUsage, predictPestRisk, predictMarketPrice } from "@/services/prediction-service"
 
 // Define types for our dashboard data
@@ -45,30 +49,16 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const { toast } = useToast()
+  const { user, role, hasPermission } = useRoleAuth()
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setIsLoading(true)
 
-        // Try to fetch real data from API
-        try {
-          const response = await api.get("/dashboard/stats")
-          setStats(response.data)
-        } catch (error) {
-          console.log("Using mock dashboard data")
-          // Use mock data if API fails
-          setStats({
-            totalFarms: 12,
-            totalCrops: 28,
-            totalHarvests: 156,
-            totalInventory: 1250,
-            totalOrders: 87,
-            totalRevenue: 125000,
-            totalClients: 34,
-            totalStaff: 45,
-          })
-        }
+        // Fetch real data from backend
+        const stats = await dashboardApi.getStats()
+        setStats(stats)
 
         // Generate predictions using our AI service with current season
         const currentSeason = getCurrentSeason()
@@ -111,16 +101,22 @@ export default function Dashboard() {
         setIsLoading(false)
       } catch (error) {
         console.error("Error fetching dashboard data:", error)
-        // Don't show error toast for demo - just use fallback data
+        toast({
+          title: "Error",
+          description: "Failed to fetch dashboard data. Please check your backend connection.",
+          variant: "destructive",
+        })
+
+        // Set empty stats on error
         setStats({
-          totalFarms: 12,
-          totalCrops: 28,
-          totalHarvests: 156,
-          totalInventory: 1250,
-          totalOrders: 87,
-          totalRevenue: 125000,
-          totalClients: 34,
-          totalStaff: 45,
+          totalFarms: 0,
+          totalCrops: 0,
+          totalHarvests: 0,
+          totalInventory: 0,
+          totalOrders: 0,
+          totalRevenue: 0,
+          totalClients: 0,
+          totalStaff: 0,
         })
 
         // Still generate predictions even if API fails
@@ -230,20 +226,40 @@ export default function Dashboard() {
   return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <div>
+            <h1 className="text-3xl font-bold">
+              Welcome back, {user?.username || 'User'}!
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Urban Farming Management System • {role} Dashboard
+            </p>
+            <div className="flex items-center gap-2 mt-2">
+              <Badge variant="outline" className="text-xs">
+                <Calendar className="mr-1 h-3 w-3" />
+                {new Date().toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </Badge>
+              <Badge variant="secondary" className="text-xs">
+                <CheckCircle className="mr-1 h-3 w-3" />
+                System Online
+              </Badge>
+            </div>
+          </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline">
-              <Calendar className="mr-2 h-4 w-4" />
-              {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-            </Button>
             <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing}>
               <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               {isRefreshing ? 'Updating...' : 'Refresh AI'}
             </Button>
-            <Button>
-              <BarChart className="mr-2 h-4 w-4" />
-              Generate Report
-            </Button>
+            <AdminOnly>
+              <Button>
+                <BarChart className="mr-2 h-4 w-4" />
+                Generate Report
+              </Button>
+            </AdminOnly>
           </div>
         </div>
 
@@ -256,7 +272,7 @@ export default function Dashboard() {
             <CardContent>
               <div className="text-2xl font-bold">{stats?.totalFarms}</div>
               <p className="text-xs text-muted-foreground">
-              <span className="text-green-500 flex items-center">
+              <span className="text-green-600 flex items-center">
                 <ArrowUpRight className="mr-1 h-3 w-3" />
                 +2 from last month
               </span>
@@ -271,7 +287,7 @@ export default function Dashboard() {
             <CardContent>
               <div className="text-2xl font-bold">{stats?.totalCrops}</div>
               <p className="text-xs text-muted-foreground">
-              <span className="text-green-500 flex items-center">
+              <span className="text-green-600 flex items-center">
                 <ArrowUpRight className="mr-1 h-3 w-3" />
                 +5 from last month
               </span>
@@ -286,7 +302,7 @@ export default function Dashboard() {
             <CardContent>
               <div className="text-2xl font-bold">{stats?.totalOrders}</div>
               <p className="text-xs text-muted-foreground">
-              <span className="text-green-500 flex items-center">
+              <span className="text-green-600 flex items-center">
                 <ArrowUpRight className="mr-1 h-3 w-3" />
                 +12 from last month
               </span>
@@ -301,7 +317,7 @@ export default function Dashboard() {
             <CardContent>
               <div className="text-2xl font-bold">${stats?.totalRevenue.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-              <span className="text-green-500 flex items-center">
+              <span className="text-green-600 flex items-center">
                 <ArrowUpRight className="mr-1 h-3 w-3" />
                 +8% from last month
               </span>
@@ -310,11 +326,54 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        {/* Business Summary Section */}
+        <AdminOnly>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Business Summary
+              </CardTitle>
+              <CardDescription>
+                Key performance indicators and business metrics overview
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Monthly Growth</span>
+                    <span className="text-sm text-green-600">+12.5%</span>
+                  </div>
+                  <Progress value={75} className="h-2" />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Efficiency Score</span>
+                    <span className="text-sm text-blue-600">87%</span>
+                  </div>
+                  <Progress value={87} className="h-2" />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Sustainability Index</span>
+                    <span className="text-sm text-green-600">92%</span>
+                  </div>
+                  <Progress value={92} className="h-2" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </AdminOnly>
+
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="predictions">AI Predictions</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <RoleGuard requiredPermission="canViewReports">
+              <TabsTrigger value="reports">Reports</TabsTrigger>
+            </RoleGuard>
           </TabsList>
           <TabsContent value="overview" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -326,7 +385,7 @@ export default function Dashboard() {
                 <CardContent>
                   <div className="text-2xl font-bold">{stats?.totalHarvests}</div>
                   <p className="text-xs text-muted-foreground">
-                  <span className="text-green-500 flex items-center">
+                  <span className="text-green-600 flex items-center">
                     <ArrowUpRight className="mr-1 h-3 w-3" />
                     +24 from last month
                   </span>
@@ -341,7 +400,7 @@ export default function Dashboard() {
                 <CardContent>
                   <div className="text-2xl font-bold">{stats?.totalInventory}</div>
                   <p className="text-xs text-muted-foreground">
-                  <span className="text-green-500 flex items-center">
+                  <span className="text-green-600 flex items-center">
                     <ArrowUpRight className="mr-1 h-3 w-3" />
                     +120 from last month
                   </span>
@@ -356,7 +415,7 @@ export default function Dashboard() {
                 <CardContent>
                   <div className="text-2xl font-bold">{stats?.totalClients}</div>
                   <p className="text-xs text-muted-foreground">
-                  <span className="text-green-500 flex items-center">
+                  <span className="text-green-600 flex items-center">
                     <ArrowUpRight className="mr-1 h-3 w-3" />
                     +3 from last month
                   </span>
@@ -517,18 +576,122 @@ export default function Dashboard() {
             </Card>
           </TabsContent>
           <TabsContent value="analytics" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Farm Performance Analytics</CardTitle>
-                <CardDescription>Comparative analysis across all farms</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px] flex items-center justify-center border rounded-lg">
-                  <p className="text-muted-foreground">Interactive charts and analytics would be displayed here</p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Farm Performance Analytics</CardTitle>
+                  <CardDescription>Comparative analysis across all farms</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px] flex items-center justify-center border rounded-lg">
+                    <p className="text-muted-foreground">Interactive charts and analytics would be displayed here</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Resource Utilization</CardTitle>
+                  <CardDescription>Water, energy, and soil usage trends</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Water Usage Efficiency</span>
+                      <Badge variant="outline">+15% vs last month</Badge>
+                    </div>
+                    <Progress value={85} className="h-2" />
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Energy Consumption</span>
+                      <Badge variant="outline">-8% vs last month</Badge>
+                    </div>
+                    <Progress value={72} className="h-2" />
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Soil Health Index</span>
+                      <Badge variant="outline">+5% vs last month</Badge>
+                    </div>
+                    <Progress value={91} className="h-2" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
+          <RoleGuard requiredPermission="canViewReports">
+            <TabsContent value="reports" className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Financial Reports</CardTitle>
+                    <CardDescription>Revenue, costs, and profitability analysis</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">Monthly Revenue</p>
+                          <p className="text-sm text-muted-foreground">Current month performance</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-green-600">$125,000</p>
+                          <p className="text-xs text-green-600">+12% ↗</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">Operating Costs</p>
+                          <p className="text-sm text-muted-foreground">Monthly expenses</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-red-600">$78,500</p>
+                          <p className="text-xs text-red-600">+3% ↗</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">Net Profit</p>
+                          <p className="text-sm text-muted-foreground">Monthly profit margin</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-green-600">$46,500</p>
+                          <p className="text-xs text-green-600">+18% ↗</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Sustainability Reports</CardTitle>
+                    <CardDescription>Environmental impact and sustainability metrics</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div>
+                          <p className="font-medium">Carbon Footprint Reduced</p>
+                          <p className="text-sm text-muted-foreground">25% reduction this quarter</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                        <div>
+                          <p className="font-medium">Water Conservation</p>
+                          <p className="text-sm text-muted-foreground">Target: 30% reduction</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div>
+                          <p className="font-medium">Organic Certification</p>
+                          <p className="text-sm text-muted-foreground">85% of farms certified</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </RoleGuard>
         </Tabs>
       </div>
   )

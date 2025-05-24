@@ -28,9 +28,17 @@ api.interceptors.response.use(
   (error) => {
     const message = error.response?.data?.message || "An error occurred"
 
+    // Handle 401 Unauthorized
     if (error.response?.status === 401) {
       localStorage.removeItem("token")
       window.location.href = "/login"
+      return Promise.reject(error)
+    }
+
+    // Handle 403 Forbidden - for now, just log it without redirecting
+    if (error.response?.status === 403) {
+      console.warn("Access forbidden - this endpoint may require authentication in the future")
+      // Don't show error for 403 during transition period
       return Promise.reject(error)
     }
 

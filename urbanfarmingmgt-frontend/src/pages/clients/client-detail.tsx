@@ -97,7 +97,7 @@ export default function ClientDetail() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="icon" asChild>
-            <Link to="/clients">
+            <Link to="/app/clients">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -105,7 +105,7 @@ export default function ClientDetail() {
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" size="icon" asChild>
-            <Link to={`/clients/edit/${client.clientID}`}>
+            <Link to={`/app/clients/edit/${client.clientID}`}>
               <Edit className="h-4 w-4" />
             </Link>
           </Button>

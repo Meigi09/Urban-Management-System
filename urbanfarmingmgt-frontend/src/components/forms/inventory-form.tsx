@@ -10,22 +10,23 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { inventoryApi } from "@/lib/api"
+import { Checkbox } from "@/components/ui/checkbox"
+import { inventoryApi } from "@/services/api-integration"
 import { useToast } from "@/hooks/use-toast"
+import type { Inventory, InventoryFormData } from "@/types/models"
 
 const inventorySchema = z.object({
-  produceType: z.string().min(2, { message: "Produce type must be at least 2 characters" }),
-  quantity: z.string().min(1, { message: "Quantity is required" }),
-  unit: z.string().min(1, { message: "Unit is required" }),
+  quantity: z.number().min(0, { message: "Quantity must be 0 or greater" }),
+  freshnessStatus: z.boolean().default(true),
   storageLocation: z.string().min(2, { message: "Storage location must be at least 2 characters" }),
-  expiryDate: z.string().optional(),
-  notes: z.string().optional(),
+  stock: z.number().min(0, { message: "Stock must be 0 or greater" }),
+  produceType: z.string().min(2, { message: "Produce type must be at least 2 characters" }),
 })
 
 type InventoryFormValues = z.infer<typeof inventorySchema>
 
 interface InventoryFormProps {
-  inventory?: any
+  inventory?: Inventory
   isEditing?: boolean
 }
 
@@ -35,12 +36,11 @@ export function InventoryForm({ inventory, isEditing = false }: InventoryFormPro
   const { toast } = useToast()
 
   const defaultValues: Partial<InventoryFormValues> = {
-    produceType: inventory?.produceType || "",
-    quantity: inventory?.quantity ? String(inventory.quantity) : "",
-    unit: inventory?.unit || "kg",
+    quantity: inventory?.quantity || 0,
+    freshnessStatus: inventory?.freshnessStatus ?? true,
     storageLocation: inventory?.storageLocation || "",
-    expiryDate: inventory?.expiryDate ? new Date(inventory.expiryDate).toISOString().split("T")[0] : "",
-    notes: inventory?.notes || "",
+    stock: inventory?.stock || 0,
+    produceType: inventory?.produceType || "",
   }
 
   const form = useForm<InventoryFormValues>({
@@ -51,20 +51,22 @@ export function InventoryForm({ inventory, isEditing = false }: InventoryFormPro
   async function onSubmit(data: InventoryFormValues) {
     setIsSubmitting(true)
     try {
-      const inventoryData = {
-        ...data,
-        quantity: Number.parseFloat(data.quantity),
-        expiryDate: data.expiryDate ? new Date(data.expiryDate).toISOString() : undefined,
+      const inventoryData: InventoryFormData = {
+        quantity: data.quantity,
+        freshnessStatus: data.freshnessStatus,
+        storageLocation: data.storageLocation,
+        stock: data.stock,
+        produceType: data.produceType,
       }
 
-      if (isEditing && inventory?.id) {
-        await inventoryApi.update(inventory.id, inventoryData)
+      if (isEditing && inventory?.inventoryID) {
+        const response = await inventoryApi.update(inventory.inventoryID, inventoryData)
         toast({
           title: "Inventory updated",
           description: "Inventory item has been updated successfully",
         })
       } else {
-        await inventoryApi.create(inventoryData)
+        const response = await inventoryApi.create(inventoryData)
         toast({
           title: "Inventory created",
           description: "Inventory item has been created successfully",
@@ -75,7 +77,7 @@ export function InventoryForm({ inventory, isEditing = false }: InventoryFormPro
       console.error("Error saving inventory:", error)
       toast({
         title: "Error",
-        description: "Failed to save inventory item",
+        description: "Failed to save inventory item. Please check your data and try again.",
         variant: "destructive",
       })
     } finally {
@@ -112,7 +114,13 @@ export function InventoryForm({ inventory, isEditing = false }: InventoryFormPro
                   <FormItem className="flex-1">
                     <FormLabel>Quantity</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" placeholder="Quantity" {...field} />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="Quantity"
+                        {...field}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -120,12 +128,18 @@ export function InventoryForm({ inventory, isEditing = false }: InventoryFormPro
               />
               <FormField
                 control={form.control}
-                name="unit"
+                name="stock"
                 render={({ field }) => (
-                  <FormItem className="w-1/3">
-                    <FormLabel>Unit</FormLabel>
+                  <FormItem className="flex-1">
+                    <FormLabel>Stock</FormLabel>
                     <FormControl>
-                      <Input placeholder="Unit (e.g., kg, lb)" {...field} />
+                      <Input
+                        type="number"
+                        step="1"
+                        placeholder="Stock count"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -147,33 +161,29 @@ export function InventoryForm({ inventory, isEditing = false }: InventoryFormPro
             />
             <FormField
               control={form.control}
-              name="expiryDate"
+              name="freshnessStatus"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Expiry Date (Optional)</FormLabel>
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes (Optional)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Additional notes" {...field} />
-                  </FormControl>
-                  <FormMessage />
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Fresh Status
+                    </FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      Check if the produce is fresh
+                    </p>
+                  </div>
                 </FormItem>
               )}
             />
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" type="button" onClick={() => navigate("/inventory")}>
+            <Button variant="outline" type="button" onClick={() => navigate("/app/inventory")}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>

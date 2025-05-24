@@ -299,7 +299,7 @@ export default function SustainabilityActionPlan() {
         <div className="flex h-96 flex-col items-center justify-center">
           <p className="text-lg font-medium">Sustainability metric not found</p>
           <Button asChild className="mt-4">
-            <Link to="/sustainability">Back to Sustainability Metrics</Link>
+            <Link to="/app/sustainability">Back to Sustainability Metrics</Link>
           </Button>
         </div>
     )
@@ -310,7 +310,7 @@ export default function SustainabilityActionPlan() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="icon" asChild>
-              <Link to={`/sustainability/${id}`}>
+              <Link to={`/app/sustainability/${id}`}>
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>

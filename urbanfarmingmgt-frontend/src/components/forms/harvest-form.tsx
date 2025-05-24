@@ -8,44 +8,56 @@ import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { harvestApi, cropApi, inventoryApi } from "@/lib/api"
+import { harvestApi, cropApi, farmApi, inventoryApi } from "@/services/api-integration"
 import { useToast } from "@/hooks/use-toast"
+import type { Harvest, HarvestFormData, Crop, Farm, Inventory } from "@/types/models"
 
 const harvestSchema = z.object({
-  cropId: z.string().min(1, { message: "Crop is required" }),
-  yield: z.string().min(1, { message: "Yield is required" }),
-  harvestDate: z.string().min(1, { message: "Harvest date is required" }),
-  qualityRating: z.string().min(1, { message: "Quality rating is required" }),
-  inventoryId: z.string().optional(),
+  date: z.string().min(1, { message: "Date is required" }),
+  yield: z.number().min(0, { message: "Yield must be 0 or greater" }),
+  qualityRating: z.number().min(1).max(10, { message: "Quality rating must be between 1 and 10" }),
+  cropID: z.number().min(1, { message: "Crop is required" }),
+  farmID: z.number().min(1, { message: "Farm is required" }),
+  inventoryID: z.number().min(1, { message: "Inventory is required" }),
 })
 
 type HarvestFormValues = z.infer<typeof harvestSchema>
 
 interface HarvestFormProps {
-  harvest?: any
+  harvest?: Harvest
   isEditing?: boolean
 }
 
 export function HarvestForm({ harvest, isEditing = false }: HarvestFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [crops, setCrops] = useState<any[]>([])
-  const [inventories, setInventories] = useState<any[]>([])
+  const [crops, setCrops] = useState<Crop[]>([])
+  const [farms, setFarms] = useState<Farm[]>([])
+  const [inventory, setInventory] = useState<Inventory[]>([])
+  const [isLoadingData, setIsLoadingData] = useState(true)
   const navigate = useNavigate()
   const { toast } = useToast()
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [cropsResponse, inventoriesResponse] = await Promise.all([cropApi.getAll(), inventoryApi.getAll()])
-        setCrops(cropsResponse.data)
-        setInventories(inventoriesResponse.data)
+        setIsLoadingData(true)
+        const [cropsData, farmsData, inventoryData] = await Promise.all([
+          cropApi.getAll(),
+          farmApi.getAll(),
+          inventoryApi.getAll()
+        ])
+        setCrops(cropsData)
+        setFarms(farmsData)
+        setInventory(inventoryData)
       } catch (error) {
         console.error("Error fetching data:", error)
         toast({
           title: "Error",
-          description: "Failed to load data",
+          description: "Failed to load required data",
           variant: "destructive",
         })
+      } finally {
+        setIsLoadingData(false)
       }
     }
 
@@ -53,11 +65,12 @@ export function HarvestForm({ harvest, isEditing = false }: HarvestFormProps) {
   }, [toast])
 
   const defaultValues: Partial<HarvestFormValues> = {
-    cropId: harvest?.cropId ? String(harvest.cropId) : "",
-    yield: harvest?.yield ? String(harvest.yield) : "",
-    harvestDate: harvest?.harvestDate ? new Date(harvest.harvestDate).toISOString().split("T")[0] : "",
-    qualityRating: harvest?.qualityRating ? String(harvest.qualityRating) : "",
-    inventoryId: harvest?.inventoryId ? String(harvest.inventoryId) : "",
+    date: harvest?.date ? new Date(harvest.date).toISOString().split("T")[0] : "",
+    yield: harvest?.yield || 0,
+    qualityRating: harvest?.qualityRating || 5,
+    cropID: harvest?.crop?.cropID || 0,
+    farmID: harvest?.farm?.farmID || 0,
+    inventoryID: harvest?.inventory?.inventoryID || 0,
   }
 
   const form = useForm<HarvestFormValues>({
@@ -68,51 +81,26 @@ export function HarvestForm({ harvest, isEditing = false }: HarvestFormProps) {
   async function onSubmit(data: HarvestFormValues) {
     setIsSubmitting(true)
     try {
-      const harvestData = {
-        cropId: Number.parseInt(data.cropId),
-        yield: Number.parseFloat(data.yield),
-        harvestDate: new Date(data.harvestDate).toISOString(),
-        qualityRating: Number.parseInt(data.qualityRating),
-        inventoryId: data.inventoryId ? Number.parseInt(data.inventoryId) : undefined,
+      const harvestData: HarvestFormData = {
+        date: new Date(data.date).toISOString(),
+        yield: data.yield,
+        qualityRating: data.qualityRating,
+        cropID: data.cropID,
+        farmID: data.farmID,
+        inventoryID: data.inventoryID,
       }
 
-      if (isEditing && harvest?.id) {
-        await harvestApi.update(harvest.id, harvestData)
-
-        // Update quality rating if changed
-        if (harvestData.qualityRating !== harvest.qualityRating) {
-          await harvestApi.updateQuality(harvest.id, harvestData.qualityRating)
-        }
-
-        // Update yield if changed
-        if (harvestData.yield !== harvest.yield) {
-          await harvestApi.updateYield(harvest.id, harvestData.yield)
-        }
-
-        // Transfer to inventory if changed
-        if (data.inventoryId && data.inventoryId !== String(harvest.inventoryId)) {
-          await harvestApi.transferToInventory(harvest.id, Number.parseInt(data.inventoryId))
-        }
-
+      if (isEditing && harvest?.harvestID) {
+        const response = await harvestApi.update(harvest.harvestID, harvestData)
         toast({
           title: "Harvest updated",
-          description: "Harvest has been updated successfully",
+          description: response || "Harvest has been updated successfully",
         })
       } else {
-        // Create harvest through crop API
-        const response = await cropApi.recordHarvest(harvestData.cropId, harvestData.yield, harvestData.qualityRating)
-
-        // If inventory is selected, transfer harvest to inventory
-        if (data.inventoryId && response.data && response.data.id) {
-          await harvestApi.transferToInventory(response.data.id, Number.parseInt(data.inventoryId))
-
-          // Update inventory with harvest yield
-          await inventoryApi.trackHarvest(response.data.id, harvestData.yield)
-        }
-
+        const response = await harvestApi.create(harvestData)
         toast({
-          title: "Harvest recorded",
-          description: "Harvest has been recorded successfully",
+          title: "Harvest created",
+          description: response || "Harvest has been created successfully",
         })
       }
       navigate("/harvests")
@@ -120,7 +108,7 @@ export function HarvestForm({ harvest, isEditing = false }: HarvestFormProps) {
       console.error("Error saving harvest:", error)
       toast({
         title: "Error",
-        description: "Failed to save harvest",
+        description: "Failed to save harvest. Please check your data and try again.",
         variant: "destructive",
       })
     } finally {
@@ -236,7 +224,7 @@ export function HarvestForm({ harvest, isEditing = false }: HarvestFormProps) {
             />
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" type="button" onClick={() => navigate("/harvests")}>
+            <Button variant="outline" type="button" onClick={() => navigate("/app/harvests")}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>

@@ -90,7 +90,7 @@ export default function StaffDetail() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="icon" asChild>
-            <Link to="/staff">
+            <Link to="/app/staff">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -151,7 +151,7 @@ export default function StaffDetail() {
           </CardContent>
           <CardFooter>
             <Button variant="outline" className="w-full" asChild>
-              <Link to={`/farms/${staff.farmId}`}>
+              <Link to={`/app/farms/${staff.farmId}`}>
                 <Warehouse className="mr-2 h-4 w-4" />
                 View Farm
               </Link>

@@ -106,7 +106,7 @@ export default function HarvestDetail() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="icon" asChild>
-            <Link to="/harvests">
+            <Link to="/app/harvests">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -162,10 +162,10 @@ export default function HarvestDetail() {
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button variant="outline" asChild>
-              <Link to={`/crops/${harvest.cropId}`}>View Crop</Link>
+              <Link to={`/app/crops/${harvest.cropId}`}>View Crop</Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link to={`/farms/${harvest.farmId}`}>View Farm</Link>
+              <Link to={`/app/farms/${harvest.farmId}`}>View Farm</Link>
             </Button>
           </CardFooter>
         </Card>

@@ -105,7 +105,7 @@ export default function OrderDetail() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="icon" asChild>
-            <Link to="/orders">
+            <Link to="/app/orders">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -157,13 +157,13 @@ export default function OrderDetail() {
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button variant="outline" asChild>
-              <Link to={`/clients/${order.clientId}`}>
+              <Link to={`/app/clients/${order.clientId}`}>
                 <User className="mr-2 h-4 w-4" />
                 View Client
               </Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link to={`/inventory/${order.inventoryId}`}>
+              <Link to={`/app/inventory/${order.inventoryId}`}>
                 <Package className="mr-2 h-4 w-4" />
                 View Inventory
               </Link>

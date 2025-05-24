@@ -161,13 +161,13 @@ export default function SustainabilityRecommendationsPage() {
       <div className="container mx-auto py-6 space-y-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" onClick={() => navigate("/sustainability")}>
+            <Button variant="ghost" onClick={() => navigate("/app/sustainability")}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Metrics
             </Button>
             <h1 className="text-3xl font-bold">Sustainability Recommendations</h1>
           </div>
-          <Button onClick={() => navigate("/sustainability/action-plan")}>
+          <Button onClick={() => navigate("/app/sustainability/action-plan")}>
             View Action Plan
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>

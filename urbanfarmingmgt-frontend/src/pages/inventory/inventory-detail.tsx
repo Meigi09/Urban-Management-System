@@ -135,7 +135,7 @@ export default function InventoryDetail() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="icon" asChild>
-            <Link to="/inventory">
+            <Link to="/app/inventory">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -191,7 +191,7 @@ export default function InventoryDetail() {
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button variant="outline" asChild>
-              <Link to={`/harvests/${inventory.harvestId}`}>
+              <Link to={`/app/harvests/${inventory.harvestId}`}>
                 <Leaf className="mr-2 h-4 w-4" />
                 View Harvest
               </Link>
@@ -221,7 +221,7 @@ export default function InventoryDetail() {
                   <div className="flex items-center space-x-2">
                     {getOrderStatusBadge(order.deliveryStatus)}
                     <Button variant="outline" size="sm" asChild>
-                      <Link to={`/orders/${order.orderId}`}>
+                      <Link to={`/app/orders/${order.orderId}`}>
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>

@@ -15,7 +15,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/contexts/auth-context"
 import { useSearch } from "@/contexts/search-context"
-import { GlobalSearch } from "./global-search"
+import EnhancedGlobalSearch from "./enhanced-global-search"
+import { ThemeToggle } from "./theme-toggle"
+import { NotificationsDropdown } from "./notifications-dropdown"
 
 interface HeaderProps {
   user: any
@@ -23,15 +25,6 @@ interface HeaderProps {
 
 export function Header({ user }: HeaderProps) {
   const { logout } = useAuth()
-  const { performGlobalSearch } = useSearch()
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    performGlobalSearch(searchQuery)
-    setIsSearchOpen(true)
-  }
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -40,34 +33,11 @@ export function Header({ user }: HeaderProps) {
         <span className="sr-only">Toggle menu</span>
       </Button>
       <div className="flex-1">
-        <form onSubmit={handleSearch} className="relative w-full md:w-80 lg:w-96">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search..."
-            className="w-full bg-background pl-8 md:w-80 lg:w-96"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </form>
-        {isSearchOpen && <GlobalSearch onClose={() => setIsSearchOpen(false)} />}
+        <EnhancedGlobalSearch />
       </div>
       <div className="flex items-center gap-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Bell className="h-5 w-5" />
-              <span className="sr-only">Notifications</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>New order received</DropdownMenuItem>
-            <DropdownMenuItem>Harvest ready for collection</DropdownMenuItem>
-            <DropdownMenuItem>Low inventory alert</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <NotificationsDropdown />
+        <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon">
@@ -79,10 +49,14 @@ export function Header({ user }: HeaderProps) {
             <DropdownMenuLabel>Settings</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link to="/settings">Account Settings</Link>
+              <Link to="/app/settings">Account Settings</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>Appearance</DropdownMenuItem>
-            <DropdownMenuItem>Notifications</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/app/settings?tab=appearance">Appearance</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/app/settings?tab=notifications">Notifications</Link>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <DropdownMenu>
@@ -96,7 +70,7 @@ export function Header({ user }: HeaderProps) {
             <DropdownMenuLabel>{user?.username || "User"}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link to="/settings">Profile</Link>
+              <Link to="/app/settings">Profile</Link>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
           </DropdownMenuContent>

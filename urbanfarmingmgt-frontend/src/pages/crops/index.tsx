@@ -130,17 +130,17 @@ export default function Crops() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem asChild>
-                <Link to={`/crops/${crop.cropID}`}>View details</Link>
+                <Link to={`/app/crops/${crop.cropID}`}>View details</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link to={`/crops/edit/${crop.cropID}`}>Edit crop</Link>
+                <Link to={`/app/crops/edit/${crop.cropID}`}>Edit crop</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to={`/harvests/new?cropId=${crop.cropID}`}>Record harvest</Link>
+                <Link to={`/app/harvests/new?cropId=${crop.cropID}`}>Record harvest</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to={`/sustainability/new?cropId=${crop.cropID}`}>Track metrics</Link>
+                <Link to={`/app/sustainability/new?cropId=${crop.cropID}`}>Track metrics</Link>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleDeleteCrop(crop.cropID)} className="text-destructive">
                 Delete crop
@@ -157,7 +157,7 @@ export default function Crops() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Crops</h1>
         <Button asChild>
-          <Link to="/crops/new">
+          <Link to="/app/crops/new">
             <Plus className="mr-2 h-4 w-4" />
             Add Crop
           </Link>

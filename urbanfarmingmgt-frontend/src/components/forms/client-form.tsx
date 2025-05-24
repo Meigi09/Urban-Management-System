@@ -1,44 +1,47 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import {clientApi} from "@/lib/api.ts";
+import { clientApi, orderApi } from "@/services/api-integration"
+import type { Client, ClientFormData, Order } from "@/types/models"
 
 const clientSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   contactInfo: z.string().min(5, { message: "Contact info must be at least 5 characters" }),
-  address: z.string().min(5, { message: "Address must be at least 5 characters" }),
-  orderPreferences: z.string().optional(),
-  paymentHistory: z.string().optional(),
+  orderPreferences: z.string().min(1, { message: "Order preferences are required" }),
+  paymentHistory: z.string().min(1, { message: "Payment history is required" }),
+  orderID: z.number().min(1, { message: "Order is required" }),
 })
 
 type ClientFormValues = z.infer<typeof clientSchema>
 
 interface ClientFormProps {
-  client?: any
+  client?: Client
   isEditing?: boolean
 }
 
 export function ClientForm({ client, isEditing = false }: ClientFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [orders, setOrders] = useState<Order[]>([])
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true)
   const navigate = useNavigate()
   const { toast } = useToast()
 
   const defaultValues: Partial<ClientFormValues> = {
     name: client?.name || "",
     contactInfo: client?.contactInfo || "",
-    address: client?.address || "",
     orderPreferences: client?.orderPreferences || "",
     paymentHistory: client?.paymentHistory || "",
+    orderID: client?.order?.orderID || 0,
   }
 
   const form = useForm<ClientFormValues>({
@@ -46,20 +49,48 @@ export function ClientForm({ client, isEditing = false }: ClientFormProps) {
     defaultValues,
   })
 
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const ordersData = await orderApi.getAll()
+        setOrders(ordersData)
+      } catch (error) {
+        console.error("Error fetching orders:", error)
+        toast({
+          title: "Warning",
+          description: "Could not load orders. You may need to create an order first.",
+          variant: "destructive",
+        })
+      } finally {
+        setIsLoadingOrders(false)
+      }
+    }
+
+    fetchOrders()
+  }, [])
+
   async function onSubmit(data: ClientFormValues) {
     setIsSubmitting(true)
     try {
-      if (isEditing && client?.id) {
-        await clientApi.update(client.id, data)
+      const clientData: ClientFormData = {
+        name: data.name,
+        contactInfo: data.contactInfo,
+        orderPreferences: data.orderPreferences,
+        paymentHistory: data.paymentHistory,
+        orderID: data.orderID,
+      }
+
+      if (isEditing && client?.clientID) {
+        const response = await clientApi.update(client.clientID, clientData)
         toast({
           title: "Client updated",
-          description: "Client has been updated successfully",
+          description: response || "Client has been updated successfully",
         })
       } else {
-        await clientApi.create(data)
+        const response = await clientApi.create(clientData)
         toast({
           title: "Client created",
-          description: "Client has been created successfully",
+          description: response || "Client has been created successfully",
         })
       }
       navigate("/clients")
@@ -67,7 +98,7 @@ export function ClientForm({ client, isEditing = false }: ClientFormProps) {
       console.error("Error saving client:", error)
       toast({
         title: "Error",
-        description: "Failed to save client",
+        description: "Failed to save client. Please check your data and try again.",
         variant: "destructive",
       })
     } finally {
@@ -111,12 +142,12 @@ export function ClientForm({ client, isEditing = false }: ClientFormProps) {
             />
             <FormField
               control={form.control}
-              name="address"
+              name="orderPreferences"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Address</FormLabel>
+                  <FormLabel>Order Preferences</FormLabel>
                   <FormControl>
-                    <Input placeholder="Client address" {...field} />
+                    <Input placeholder="Client order preferences" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -124,35 +155,48 @@ export function ClientForm({ client, isEditing = false }: ClientFormProps) {
             />
             <FormField
               control={form.control}
-              name="orderPreferences"
+              name="paymentHistory"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Order Preferences</FormLabel>
+                  <FormLabel>Payment History</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Client order preferences" {...field} />
+                    <Input placeholder="Payment history" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            {isEditing && (
-              <FormField
-                control={form.control}
-                name="paymentHistory"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Payment History</FormLabel>
+            <FormField
+              control={form.control}
+              name="orderID"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Associated Order</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    value={field.value?.toString()}
+                    disabled={isLoadingOrders}
+                  >
                     <FormControl>
-                      <Textarea placeholder="Payment history" {...field} />
+                      <SelectTrigger>
+                        <SelectValue placeholder={isLoadingOrders ? "Loading orders..." : "Select an order"} />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+                    <SelectContent>
+                      {orders.map((order) => (
+                        <SelectItem key={order.orderID} value={order.orderID.toString()}>
+                          Order #{order.orderID} - {order.deliveryStatus} - ${order.quantityOrdered}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" type="button" onClick={() => navigate("/clients")}>
+            <Button variant="outline" type="button" onClick={() => navigate("/app/clients")}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>

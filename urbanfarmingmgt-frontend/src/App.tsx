@@ -2,8 +2,13 @@ import { Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/auth-context"
 import { SearchProvider } from "@/contexts/search-context"
+import { ThemeProvider } from "@/contexts/theme-context"
+import { NotificationsProvider } from "@/contexts/notifications-context"
 import Layout from "@/components/layout"
 import ProtectedRoute from "@/components/protected-route"
+
+// Landing page
+import LandingPage from "@/pages/landing"
 
 // Auth pages
 import Login from "@/pages/auth/login"
@@ -63,26 +68,43 @@ import SustainabilityRecommendations from "@/pages/sustainability/recommendation
 function App() {
   return (
       <>
-        <AuthProvider>
-          <SearchProvider>
-            <Routes>
-              {/* Auth routes - FIXED: Changed paths to match navigation links */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/two-factor-auth" element={<TwoFactorAuth />} />
+        <ThemeProvider>
+          <AuthProvider>
+            <SearchProvider>
+              <NotificationsProvider>
+                <Routes>
+                  {/* Landing page */}
+                  <Route path="/" element={<LandingPage />} />
 
-              {/* Protected routes */}
-              <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <Layout />
-                    </ProtectedRoute>
-                  }
-              >
-                <Route index element={<Navigate to="/dashboard" replace />} />
+                  {/* Auth routes */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/two-factor-auth" element={<TwoFactorAuth />} />
+
+                  {/* Redirect old routes to new structure */}
+                  <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
+                  <Route path="/clients" element={<Navigate to="/app/clients" replace />} />
+                  <Route path="/farms" element={<Navigate to="/app/farms" replace />} />
+                  <Route path="/crops" element={<Navigate to="/app/crops" replace />} />
+                  <Route path="/harvests" element={<Navigate to="/app/harvests" replace />} />
+                  <Route path="/inventory" element={<Navigate to="/app/inventory" replace />} />
+                  <Route path="/orders" element={<Navigate to="/app/orders" replace />} />
+                  <Route path="/staff" element={<Navigate to="/app/staff" replace />} />
+                  <Route path="/sustainability" element={<Navigate to="/app/sustainability" replace />} />
+                  <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
+
+                  {/* Protected routes */}
+                  <Route
+                      path="/app"
+                      element={
+                        <ProtectedRoute>
+                          <Layout />
+                        </ProtectedRoute>
+                      }
+                  >
+                    <Route index element={<Navigate to="/app/dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="settings" element={<Settings />} />
 
@@ -137,12 +159,14 @@ function App() {
                 <Route path="sustainability/:id/recommendations" element={<SustainabilityRecommendations />} />
               </Route>
 
-              {/* 404 route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Toaster />
-          </SearchProvider>
-        </AuthProvider>
+                  {/* 404 route */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <Toaster />
+              </NotificationsProvider>
+            </SearchProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </>
   )
 }

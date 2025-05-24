@@ -7,23 +7,22 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import {farmApi} from "@/lib/api.ts";
+import { farmApi } from "@/services/api-integration"
+import type { Farm, FarmFormData } from "@/types/models"
 
 const farmSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   location: z.string().min(2, { message: "Location must be at least 2 characters" }),
-  size: z.string().min(1, { message: "Size is required" }),
-  description: z.string().optional(),
+  totalPlantingArea: z.number().min(0.1, { message: "Total planting area must be greater than 0" }),
 })
 
 type FarmFormValues = z.infer<typeof farmSchema>
 
 interface FarmFormProps {
-  farm?: any
+  farm?: Farm
   isEditing?: boolean
 }
 
@@ -35,8 +34,7 @@ export function FarmForm({ farm, isEditing = false }: FarmFormProps) {
   const defaultValues: Partial<FarmFormValues> = {
     name: farm?.name || "",
     location: farm?.location || "",
-    size: farm?.size ? String(farm.size) : "",
-    description: farm?.description || "",
+    totalPlantingArea: farm?.totalPlantingArea || 0,
   }
 
   const form = useForm<FarmFormValues>({
@@ -47,30 +45,34 @@ export function FarmForm({ farm, isEditing = false }: FarmFormProps) {
   async function onSubmit(data: FarmFormValues) {
     setIsSubmitting(true)
     try {
-      const farmData = {
-        ...data,
-        size: Number.parseFloat(data.size),
+      const farmData: FarmFormData = {
+        name: data.name,
+        location: data.location,
+        totalPlantingArea: data.totalPlantingArea,
       }
 
-      if (isEditing && farm?.id) {
-        await farmApi.update(farm.id, farmData)
+      if (isEditing && farm?.farmID) {
+        const response = await farmApi.update(farm.farmID, farmData)
         toast({
           title: "Farm updated",
-          description: "Farm has been updated successfully",
+          description: response || "Farm has been updated successfully",
         })
       } else {
-        await farmApi.create(farmData)
+        const response = await farmApi.create(farmData)
         toast({
           title: "Farm created",
-          description: "Farm has been created successfully",
+          description: response || "Farm has been created successfully",
         })
+
+        // Trigger refresh event for farms list
+        window.dispatchEvent(new CustomEvent('farmCreated'))
       }
       navigate("/farms")
     } catch (error) {
       console.error("Error saving farm:", error)
       toast({
         title: "Error",
-        description: "Failed to save farm",
+        description: "Failed to save farm. Please check your data and try again.",
         variant: "destructive",
       })
     } finally {
@@ -114,25 +116,18 @@ export function FarmForm({ farm, isEditing = false }: FarmFormProps) {
             />
             <FormField
               control={form.control}
-              name="size"
+              name="totalPlantingArea"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Size (acres)</FormLabel>
+                  <FormLabel>Total Planting Area (hectares)</FormLabel>
                   <FormControl>
-                    <Input type="number" step="0.01" placeholder="Farm size in acres" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Farm description" {...field} />
+                    <Input
+                      type="number"
+                      step="0.1"
+                      placeholder="Total planting area in hectares"
+                      {...field}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -140,7 +135,7 @@ export function FarmForm({ farm, isEditing = false }: FarmFormProps) {
             />
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" type="button" onClick={() => navigate("/farms")}>
+            <Button variant="outline" type="button" onClick={() => navigate("/app/farms")}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>

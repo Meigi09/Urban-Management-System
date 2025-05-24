@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SlidersHorizontal } from "lucide-react"
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SlidersHorizontal, Search, X } from "lucide-react"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -50,6 +50,19 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, columnId, filterValue) => {
+      const search = filterValue.toLowerCase()
+
+      // Search through all visible cell values
+      return row.getVisibleCells().some((cell) => {
+        const cellValue = cell.getValue()
+        if (cellValue == null) return false
+
+        // Convert to string and search
+        const stringValue = String(cellValue).toLowerCase()
+        return stringValue.includes(search)
+      })
+    },
     state: {
       sorting,
       columnFilters,
@@ -61,12 +74,30 @@ export function DataTable<TData, TValue>({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex flex-1 items-center space-x-2">
-          <Input
-            placeholder={searchPlaceholder}
-            value={globalFilter}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            className="max-w-sm"
-          />
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder={searchPlaceholder}
+              value={globalFilter}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              className="pl-9 pr-9"
+            />
+            {globalFilter && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 h-6 w-6 -translate-y-1/2 p-0"
+                onClick={() => setGlobalFilter("")}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+          {globalFilter && (
+            <div className="text-sm text-muted-foreground">
+              {table.getFilteredRowModel().rows.length} of {data.length} results
+            </div>
+          )}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

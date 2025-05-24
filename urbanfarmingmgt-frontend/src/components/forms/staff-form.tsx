@@ -120,7 +120,7 @@ export function StaffForm({ staff, isEditing = false }: StaffFormProps) {
           description: "Staff member has been created successfully",
         })
       }
-      navigate("/staff")
+      navigate("/app/staff")
     } catch (error) {
       console.error("Error saving staff:", error)
       toast({
@@ -259,7 +259,7 @@ export function StaffForm({ staff, isEditing = false }: StaffFormProps) {
             />
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" type="button" onClick={() => navigate("/staff")}>
+            <Button variant="outline" type="button" onClick={() => navigate("/app/staff")}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>

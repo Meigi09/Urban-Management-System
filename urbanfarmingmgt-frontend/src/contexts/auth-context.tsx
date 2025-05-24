@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         toast({
           title: "Demo Login successful",
-          description: "Welcome to the Urban Farming Management System!",
+          description: "Welcome to the Urban Farming Management System! All features are now accessible.",
         })
 
         return true

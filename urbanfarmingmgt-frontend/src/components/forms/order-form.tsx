@@ -259,7 +259,7 @@ export function OrderForm({ order, isEditing = false }: OrderFormProps) {
             />
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" type="button" onClick={() => navigate("/orders")}>
+            <Button variant="outline" type="button" onClick={() => navigate("/app/orders")}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>

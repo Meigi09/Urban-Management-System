@@ -11,55 +11,69 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { useEffect } from "react"
-import {cropApi , farmApi} from "@/lib/api.ts";
+import { cropApi, farmApi, inventoryApi } from "@/services/api-integration"
+import type { Crop, CropFormData, Farm, Inventory } from "@/types/models"
 
 const cropSchema = z.object({
   cropType: z.string().min(2, { message: "Crop type must be at least 2 characters" }),
   plantingSchedule: z.string().min(1, { message: "Planting schedule is required" }),
   growingConditions: z.boolean().default(true),
-  locationRequirement: z.string().min(2, { message: "Location requirement must be at least 2 characters" }),
+  averageYield: z.number().min(0, { message: "Average yield must be 0 or greater" }).optional(),
   growingSeason: z.string().min(2, { message: "Growing season must be at least 2 characters" }),
-  farmId: z.string().optional(),
+  locationRequirement: z.string().min(2, { message: "Location requirement must be at least 2 characters" }),
+  farmID: z.number().min(1, { message: "Farm is required" }),
+  inventoryID: z.number().min(1, { message: "Inventory is required" }),
 })
 
 type CropFormValues = z.infer<typeof cropSchema>
 
 interface CropFormProps {
-  crop?: any
+  crop?: Crop
   isEditing?: boolean
 }
 
 export function CropForm({ crop, isEditing = false }: CropFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [farms, setFarms] = useState<any[]>([])
+  const [farms, setFarms] = useState<Farm[]>([])
+  const [inventory, setInventory] = useState<Inventory[]>([])
+  const [isLoadingData, setIsLoadingData] = useState(true)
   const navigate = useNavigate()
   const { toast } = useToast()
 
   useEffect(() => {
-    const fetchFarms = async () => {
+    const fetchData = async () => {
       try {
-        const response = await farmApi.getAll()
-        setFarms(response.data)
+        setIsLoadingData(true)
+        const [farmsData, inventoryData] = await Promise.all([
+          farmApi.getAll(),
+          inventoryApi.getAll()
+        ])
+        setFarms(farmsData)
+        setInventory(inventoryData)
       } catch (error) {
-        console.error("Error fetching farms:", error)
+        console.error("Error fetching data:", error)
         toast({
           title: "Error",
-          description: "Failed to load farms",
+          description: "Failed to load farms and inventory data",
           variant: "destructive",
         })
+      } finally {
+        setIsLoadingData(false)
       }
     }
 
-    fetchFarms()
+    fetchData()
   }, [toast])
 
   const defaultValues: Partial<CropFormValues> = {
     cropType: crop?.cropType || "",
     plantingSchedule: crop?.plantingSchedule ? new Date(crop.plantingSchedule).toISOString().split("T")[0] : "",
-    growingConditions: crop?.growingConditions || true,
-    locationRequirement: crop?.locationRequirement || "",
+    growingConditions: crop?.growingConditions ?? true,
+    averageYield: crop?.averageYield || 0,
     growingSeason: crop?.growingSeason || "",
-    farmId: crop?.farmId ? String(crop.farmId) : undefined,
+    locationRequirement: crop?.locationRequirement || "",
+    farmID: crop?.farm?.farmID || 0,
+    inventoryID: crop?.inventory?.inventoryID || 0,
   }
 
   const form = useForm<CropFormValues>({
@@ -70,30 +84,28 @@ export function CropForm({ crop, isEditing = false }: CropFormProps) {
   async function onSubmit(data: CropFormValues) {
     setIsSubmitting(true)
     try {
-      const cropData = {
-        ...data,
+      const cropData: CropFormData = {
+        cropType: data.cropType,
         plantingSchedule: new Date(data.plantingSchedule).toISOString(),
-        farmId: data.farmId ? Number.parseInt(data.farmId) : undefined,
+        growingConditions: data.growingConditions,
+        averageYield: data.averageYield,
+        growingSeason: data.growingSeason,
+        locationRequirement: data.locationRequirement,
+        farmID: data.farmID,
+        inventoryID: data.inventoryID,
       }
 
-      if (isEditing && crop?.id) {
-        await cropApi.update(crop.id, cropData)
+      if (isEditing && crop?.cropID) {
+        const response = await cropApi.update(crop.cropID, cropData)
         toast({
           title: "Crop updated",
-          description: "Crop has been updated successfully",
+          description: response || "Crop has been updated successfully",
         })
       } else {
         const response = await cropApi.create(cropData)
-
-        // If farm is selected, assign crop to farm
-        if (data.farmId) {
-          const cropId = response.data.id || response.data.cropID
-          await cropApi.assignToFarm(cropId, Number.parseInt(data.farmId))
-        }
-
         toast({
           title: "Crop created",
-          description: "Crop has been created successfully",
+          description: response || "Crop has been created successfully",
         })
       }
       navigate("/crops")
@@ -101,7 +113,7 @@ export function CropForm({ crop, isEditing = false }: CropFormProps) {
       console.error("Error saving crop:", error)
       toast({
         title: "Error",
-        description: "Failed to save crop",
+        description: "Failed to save crop. Please check your data and try again.",
         variant: "destructive",
       })
     } finally {
@@ -196,20 +208,71 @@ export function CropForm({ crop, isEditing = false }: CropFormProps) {
             />
             <FormField
               control={form.control}
-              name="farmId"
+              name="averageYield"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Assign to Farm (Optional)</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormLabel>Average Yield (Optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="Average yield"
+                      {...field}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="farmID"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Farm</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    value={field.value?.toString()}
+                    disabled={isLoadingData}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a farm" />
+                        <SelectValue placeholder={isLoadingData ? "Loading farms..." : "Select a farm"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {farms.map((farm) => (
-                        <SelectItem key={farm.id || farm.farmID} value={String(farm.id || farm.farmID)}>
-                          {farm.name}
+                        <SelectItem key={farm.farmID} value={farm.farmID.toString()}>
+                          {farm.name} - {farm.location}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="inventoryID"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Inventory</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    value={field.value?.toString()}
+                    disabled={isLoadingData}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={isLoadingData ? "Loading inventory..." : "Select inventory"} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {inventory.map((item) => (
+                        <SelectItem key={item.inventoryID} value={item.inventoryID.toString()}>
+                          {item.produceType} - {item.storageLocation} (Stock: {item.stock})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -220,7 +283,7 @@ export function CropForm({ crop, isEditing = false }: CropFormProps) {
             />
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" type="button" onClick={() => navigate("/crops")}>
+            <Button variant="outline" type="button" onClick={() => navigate("/app/crops")}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>

@@ -31,7 +31,10 @@ function SidebarItem({ icon, title, href, isActive }: SidebarItemProps) {
     <Link to={href}>
       <Button
         variant="ghost"
-        className={cn("w-full justify-start gap-2", isActive && "bg-accent text-accent-foreground")}
+        className={cn(
+          "w-full justify-start gap-2 hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-900/20 dark:hover:text-green-300",
+          isActive && "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+        )}
       >
         {icon}
         <span>{title}</span>
@@ -49,8 +52,10 @@ export function Sidebar() {
     <aside className="hidden border-r bg-card md:flex md:w-64 md:flex-col">
       <div className="flex h-16 items-center border-b px-6">
         <Link to="/" className="flex items-center gap-2 font-semibold">
-          <Leaf className="h-6 w-6 text-primary" />
-          <span className="text-lg font-bold">Urban Farming</span>
+          <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+            <Leaf className="h-5 w-5 text-white" />
+          </div>
+          <span className="text-lg font-bold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">Urban Farm Pro</span>
         </Link>
       </div>
       <nav className="flex-1 overflow-auto py-4">
@@ -58,63 +63,63 @@ export function Sidebar() {
           <SidebarItem
             icon={<LayoutDashboard className="h-5 w-5" />}
             title="Dashboard"
-            href="/"
-            isActive={location.pathname === "/"}
+            href="/app/dashboard"
+            isActive={location.pathname === "/app/dashboard"}
           />
           <SidebarItem
             icon={<Users className="h-5 w-5" />}
             title="Clients"
-            href="/clients"
-            isActive={location.pathname.startsWith("/clients")}
+            href="/app/clients"
+            isActive={location.pathname.startsWith("/app/clients")}
           />
           <SidebarItem
             icon={<Warehouse className="h-5 w-5" />}
             title="Farms"
-            href="/farms"
-            isActive={location.pathname.startsWith("/farms")}
+            href="/app/farms"
+            isActive={location.pathname.startsWith("/app/farms")}
           />
           <SidebarItem
             icon={<Sprout className="h-5 w-5" />}
             title="Crops"
-            href="/crops"
-            isActive={location.pathname.startsWith("/crops")}
+            href="/app/crops"
+            isActive={location.pathname.startsWith("/app/crops")}
           />
           <SidebarItem
             icon={<Leaf className="h-5 w-5" />}
             title="Harvests"
-            href="/harvests"
-            isActive={location.pathname.startsWith("/harvests")}
+            href="/app/harvests"
+            isActive={location.pathname.startsWith("/app/harvests")}
           />
           <SidebarItem
             icon={<Package className="h-5 w-5" />}
             title="Inventory"
-            href="/inventory"
-            isActive={location.pathname.startsWith("/inventory")}
+            href="/app/inventory"
+            isActive={location.pathname.startsWith("/app/inventory")}
           />
           <SidebarItem
             icon={<ShoppingCart className="h-5 w-5" />}
             title="Orders"
-            href="/orders"
-            isActive={location.pathname.startsWith("/orders")}
+            href="/app/orders"
+            isActive={location.pathname.startsWith("/app/orders")}
           />
           <SidebarItem
             icon={<UserCog className="h-5 w-5" />}
             title="Staff"
-            href="/staff"
-            isActive={location.pathname.startsWith("/staff")}
+            href="/app/staff"
+            isActive={location.pathname.startsWith("/app/staff")}
           />
           <SidebarItem
             icon={<BarChart3 className="h-5 w-5" />}
             title="Sustainability"
-            href="/sustainability"
-            isActive={location.pathname.startsWith("/sustainability")}
+            href="/app/sustainability"
+            isActive={location.pathname.startsWith("/app/sustainability")}
           />
           {isAdmin && (
             <SidebarItem
               icon={<Settings className="h-5 w-5" />}
               title="Settings"
-              href="/settings"
-              isActive={location.pathname.startsWith("/settings")}
+              href="/app/settings"
+              isActive={location.pathname.startsWith("/app/settings")}
             />
           )}
         </div>

@@ -29,7 +29,7 @@ export default function Login() {
     try {
       const success = await login(email, password)
       if (success) {
-        navigate("/dashboard")
+        navigate("/app/dashboard")
       }
     } catch (error) {
       console.error("Login error:", error)

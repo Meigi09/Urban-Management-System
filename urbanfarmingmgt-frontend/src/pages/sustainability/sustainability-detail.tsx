@@ -142,7 +142,7 @@ export default function SustainabilityDetailPage() {
     return (
         <div className="container mx-auto py-6">
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" onClick={() => navigate("/sustainability")}>
+            <Button variant="ghost" onClick={() => navigate("/app/sustainability")}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Metrics
             </Button>
@@ -158,7 +158,7 @@ export default function SustainabilityDetailPage() {
     return (
         <div className="container mx-auto py-6">
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" onClick={() => navigate("/sustainability")}>
+            <Button variant="ghost" onClick={() => navigate("/app/sustainability")}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Metrics
             </Button>
@@ -201,13 +201,13 @@ export default function SustainabilityDetailPage() {
       <div className="container mx-auto py-6 space-y-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" onClick={() => navigate("/sustainability")}>
+            <Button variant="ghost" onClick={() => navigate("/app/sustainability")}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Metrics
             </Button>
           </div>
           <div className="flex space-x-2">
-            <Button variant="outline" onClick={() => navigate(`/sustainability/edit/${metric.id}`)}>
+            <Button variant="outline" onClick={() => navigate(`/app/sustainability/edit/${metric.id}`)}>
               <Edit className="mr-2 h-4 w-4" />
               Edit Metric
             </Button>

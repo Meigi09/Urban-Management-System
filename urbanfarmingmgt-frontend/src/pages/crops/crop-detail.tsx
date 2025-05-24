@@ -153,7 +153,7 @@ export default function CropDetail() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="icon" asChild>
-            <Link to="/crops">
+            <Link to="/app/crops">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>

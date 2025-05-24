@@ -17,16 +17,26 @@ import { formatDate } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { harvestApi } from "@/lib/api"
 
+// Harvest interface matching your backend model exactly
 interface Harvest {
-  harvestId: number
-  cropId: number
-  cropType: string
-  farmId: number
-  farmName: string
-  harvestDate: string
+  harvestID: number
+  date: string
   yield: number
   qualityRating: number
-  inventoryId: number
+  crop: {
+    cropID: number
+    cropType: string
+    [key: string]: any
+  }
+  farm: {
+    farmID: number
+    name: string
+    [key: string]: any
+  }
+  inventory: {
+    inventoryID: number
+    [key: string]: any
+  }
 }
 
 export default function Harvests() {
@@ -39,12 +49,16 @@ export default function Harvests() {
       try {
         setIsLoading(true)
         const response = await harvestApi.getAll()
-        setHarvests(response.data)
+
+        // Use the data directly from your backend - no mock data
+        const harvestsData = Array.isArray(response.data) ? response.data : []
+        setHarvests(harvestsData)
         setIsLoading(false)
       } catch (error) {
+        console.error("Error fetching harvests:", error)
         toast({
           title: "Error",
-          description: "Failed to fetch harvests",
+          description: "Failed to fetch harvests from database",
           variant: "destructive",
         })
         setIsLoading(false)
@@ -81,11 +95,11 @@ export default function Harvests() {
 
   const columns: ColumnDef<Harvest>[] = [
     {
-      accessorKey: "harvestId",
-      header: "ID",
+      accessorKey: "harvestID",
+      header: "Harvest ID",
     },
     {
-      accessorKey: "cropType",
+      accessorKey: "crop",
       header: ({ column }) => {
         return (
           <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
@@ -94,15 +108,17 @@ export default function Harvests() {
           </Button>
         )
       },
+      cell: ({ row }) => row.original.crop?.cropType || 'Unknown',
     },
     {
-      accessorKey: "farmName",
+      accessorKey: "farm",
       header: "Farm",
+      cell: ({ row }) => row.original.farm?.name || 'Unknown',
     },
     {
-      accessorKey: "harvestDate",
+      accessorKey: "date",
       header: "Harvest Date",
-      cell: ({ row }) => formatDate(row.original.harvestDate),
+      cell: ({ row }) => formatDate(row.original.date),
     },
     {
       accessorKey: "yield",
@@ -136,19 +152,19 @@ export default function Harvests() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem asChild>
-                <Link to={`/harvests/${harvest.harvestId}`}>View details</Link>
+                <Link to={`/harvests/${harvest.harvestID}`}>View details</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link to={`/harvests/${harvest.harvestId}/update-quality`}>Update quality</Link>
+                <Link to={`/harvests/${harvest.harvestID}/update-quality`}>Update quality</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to={`/harvests/${harvest.harvestId}/update-yield`}>Update yield</Link>
+                <Link to={`/harvests/${harvest.harvestID}/update-yield`}>Update yield</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to={`/inventory/new?harvestId=${harvest.harvestId}`}>Transfer to inventory</Link>
+                <Link to={`/inventory/new?harvestId=${harvest.harvestID}`}>Transfer to inventory</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleDeleteHarvest(harvest.harvestId)} className="text-destructive">
+              <DropdownMenuItem onClick={() => handleDeleteHarvest(harvest.harvestID)} className="text-destructive">
                 Delete harvest
               </DropdownMenuItem>
             </DropdownMenuContent>

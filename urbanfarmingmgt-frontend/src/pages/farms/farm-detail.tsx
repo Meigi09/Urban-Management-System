@@ -124,7 +124,7 @@ export default function FarmDetail() {
       <div className="flex h-96 flex-col items-center justify-center">
         <p className="text-lg font-medium">Farm not found</p>
         <Button asChild className="mt-4">
-          <Link to="/farms">Back to Farms</Link>
+          <Link to="/app/farms">Back to Farms</Link>
         </Button>
       </div>
     )
@@ -135,7 +135,7 @@ export default function FarmDetail() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="icon" asChild>
-            <Link to="/farms">
+            <Link to="/app/farms">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -219,7 +219,7 @@ export default function FarmDetail() {
                     </div>
                     <div>
                       <Button variant="outline" size="sm" asChild>
-                        <Link to={`/crops/${crop.cropID}`}>View</Link>
+                        <Link to={`/app/crops/${crop.cropID}`}>View</Link>
                       </Button>
                     </div>
                   </div>
@@ -240,7 +240,7 @@ export default function FarmDetail() {
                     </div>
                     <div>
                       <Button variant="outline" size="sm" asChild>
-                        <Link to={`/staff/${person.id}`}>View</Link>
+                        <Link to={`/app/staff/${person.id}`}>View</Link>
                       </Button>
                     </div>
                   </div>

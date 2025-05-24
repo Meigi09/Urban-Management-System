@@ -33,15 +33,37 @@ export default function Clients() {
       try {
         setIsLoading(true)
         const response = await clientApi.getAll()
-        setClients(response.data)
+
+        // Ensure the data is properly formatted
+        const clientsData = Array.isArray(response.data) ? response.data : []
+        const formattedClients = clientsData.map((client: any) => ({
+          ...client,
+          name: client.name || 'Unknown Client',
+          contactInfo: client.contactInfo || 'No contact info',
+          orderPreferences: client.orderPreferences || 'No preferences',
+          paymentHistory: client.paymentHistory || 'No history'
+        }))
+
+        setClients(formattedClients)
         setIsLoading(false)
       } catch (error) {
+        console.error("Error fetching clients:", error)
         toast({
           title: "Error",
-          description: "Failed to fetch clients",
+          description: "Failed to fetch clients from database. Please check your backend connection.",
           variant: "destructive",
         })
+        setClients([]) // Set empty array on error
         setIsLoading(false)
+
+        // Only show error toast if not in demo mode
+        if (!window.location.hostname.includes('localhost')) {
+          toast({
+            title: "Error",
+            description: "Failed to fetch clients",
+            variant: "destructive",
+          })
+        }
       }
     }
 

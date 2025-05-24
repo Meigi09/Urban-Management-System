@@ -16,17 +16,8 @@ import {
 import { DataTable } from "@/components/data-table"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { inventoryApi } from "@/lib/api"
-
-interface Inventory {
-  inventoryId: number
-  produceType: string
-  quantity: number
-  status: string
-  harvestId: number
-  farmId: number
-  farmName: string
-}
+import { inventoryApi } from "@/services/api-integration"
+import type { Inventory } from "@/types/models"
 
 export default function Inventory() {
   const [inventory, setInventory] = useState<Inventory[]>([])
@@ -37,15 +28,17 @@ export default function Inventory() {
     const fetchInventory = async () => {
       try {
         setIsLoading(true)
-        const response = await inventoryApi.getAll()
-        setInventory(response.data)
+        const inventoryData = await inventoryApi.getAll()
+        setInventory(inventoryData)
         setIsLoading(false)
       } catch (error) {
+        console.error("Error fetching inventory:", error)
         toast({
           title: "Error",
-          description: "Failed to fetch inventory",
+          description: "Failed to fetch inventory from database. Please check your backend connection.",
           variant: "destructive",
         })
+        setInventory([]) // Set empty array on error
         setIsLoading(false)
       }
     }
@@ -54,32 +47,43 @@ export default function Inventory() {
   }, [toast])
 
   const handleDeleteInventory = async (inventoryId: number) => {
+    if (!window.confirm("Are you sure you want to delete this inventory item? This action cannot be undone.")) {
+      return
+    }
+
     try {
       await inventoryApi.delete(inventoryId)
-      setInventory(inventory.filter((item) => item.inventoryId !== inventoryId))
+      setInventory(inventory.filter((item) => item.inventoryID !== inventoryId))
       toast({
         title: "Success",
         description: "Inventory item deleted successfully",
       })
     } catch (error) {
+      console.error("Error deleting inventory:", error)
       toast({
         title: "Error",
-        description: "Failed to delete inventory item",
+        description: "Failed to delete inventory item. Please try again.",
         variant: "destructive",
       })
     }
   }
 
-  const getStatusBadge = (status: string) => {
-    if (status === "Available") return <Badge className="bg-green-100 text-green-800">Available</Badge>
-    if (status === "Low Stock") return <Badge className="bg-yellow-100 text-yellow-800">Low Stock</Badge>
-    if (status === "Out of Stock") return <Badge className="bg-red-100 text-red-800">Out of Stock</Badge>
-    return <Badge>{status}</Badge>
+  const getFreshnessStatusBadge = (freshnessStatus: boolean) => {
+    return freshnessStatus ?
+      <Badge className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200">Fresh</Badge> :
+      <Badge className="bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200">Not Fresh</Badge>
+  }
+
+  const getStockStatusBadge = (stock: number) => {
+    if (stock > 50) return <Badge className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200">High Stock</Badge>
+    if (stock > 10) return <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200">Medium Stock</Badge>
+    if (stock > 0) return <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200">Low Stock</Badge>
+    return <Badge className="bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200">Out of Stock</Badge>
   }
 
   const columns: ColumnDef<Inventory>[] = [
     {
-      accessorKey: "inventoryId",
+      accessorKey: "inventoryID",
       header: "ID",
     },
     {
@@ -98,20 +102,33 @@ export default function Inventory() {
       header: ({ column }) => {
         return (
           <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Quantity (kg)
+            Quantity
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
       },
+      cell: ({ row }) => `${row.original.quantity}`,
     },
     {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => getStatusBadge(row.original.status),
+      accessorKey: "stock",
+      header: ({ column }) => {
+        return (
+          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Stock
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => getStockStatusBadge(row.original.stock),
     },
     {
-      accessorKey: "farmName",
-      header: "Farm",
+      accessorKey: "storageLocation",
+      header: "Storage Location",
+    },
+    {
+      accessorKey: "freshnessStatus",
+      header: "Freshness",
+      cell: ({ row }) => getFreshnessStatusBadge(row.original.freshnessStatus),
     },
     {
       id: "actions",
@@ -129,19 +146,16 @@ export default function Inventory() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem asChild>
-                <Link to={`/inventory/${item.inventoryId}`}>View details</Link>
+                <Link to={`/inventory/${item.inventoryID}`}>View details</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to={`/inventory/${item.inventoryID}/edit`}>Edit item</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link to={`/inventory/${item.inventoryId}/update-stock`}>Update stock</Link>
+                <Link to={`/orders/new?inventoryId=${item.inventoryID}`}>Create order</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to={`/orders/new?inventoryId=${item.inventoryId}`}>Link to order</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to={`/inventory/${item.inventoryId}/check-availability`}>Check availability</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleDeleteInventory(item.inventoryId)} className="text-destructive">
+              <DropdownMenuItem onClick={() => handleDeleteInventory(item.inventoryID)} className="text-destructive">
                 Delete item
               </DropdownMenuItem>
             </DropdownMenuContent>
