@@ -44,7 +44,7 @@ The Urban Farming Management System is designed to revolutionize urban agricultu
 - **Client relationship management** with preferences tracking
 - **Delivery scheduling** and satisfaction metrics
 
-![Editor _ Mermaid Chart-2025-05-21-153157](https://github.com/user-attachments/assets/de5718bb-c987-409a-9685-2b75b5aef0c4)
+![Editor _ Mermaid Chart-2025-05-24-134806](https://github.com/user-attachments/assets/b10eb6dd-05fa-46d5-aa3d-b8d7c952e430)
 
 ## 🏗️ Technical Architecture
 
