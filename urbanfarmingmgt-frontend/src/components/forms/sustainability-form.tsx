@@ -254,7 +254,7 @@ export function SustainabilityForm({ metric, isEditing = false }: Sustainability
             />
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" type="button" onClick={() => navigate("/sustainability")}>
+            <Button variant="outline" type="button" onClick={() => navigate("/app/sustainability")}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>

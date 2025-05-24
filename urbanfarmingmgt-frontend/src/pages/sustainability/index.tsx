@@ -236,9 +236,9 @@ export default function SustainabilityPage() {
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Sustainability Metrics</h1>
           <div className="flex gap-2">
-            <Button onClick={() => navigate("/sustainability/recommendations")}>View Recommendations</Button>
-            <Button onClick={() => navigate("/sustainability/action-plan")}>Action Plan</Button>
-            <Button onClick={() => navigate("/sustainability/new")}>Add New Metric</Button>
+            <Button onClick={() => navigate("/app/sustainability/recommendations")}>View Recommendations</Button>
+            <Button onClick={() => navigate("/app/sustainability/action-plan")}>Action Plan</Button>
+            <Button onClick={() => navigate("/app/sustainability/new")}>Add New Metric</Button>
           </div>
         </div>
 

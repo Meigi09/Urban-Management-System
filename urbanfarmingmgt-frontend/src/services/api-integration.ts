@@ -21,42 +21,42 @@ import type {
 // Farm API - Matching your backend exactly
 export const farmApi = {
   getAll: async (): Promise<Farm[]> => {
-    const response = await api.get('/api/farms')
+    const response = await api.get('/farms')
     return response.data
   },
 
   getById: async (id: number): Promise<Farm> => {
-    const response = await api.get(`/api/farms/${id}`)
+    const response = await api.get(`/farms/${id}`)
     return response.data
   },
 
   create: async (farm: FarmFormData): Promise<string> => {
-    const response = await api.post('/api/farms', farm)
+    const response = await api.post('/farms', farm)
     return response.data
   },
 
   update: async (id: number, farm: FarmFormData): Promise<string> => {
-    const response = await api.put(`/api/farms/${id}`, farm)
+    const response = await api.put(`/farms/${id}`, farm)
     return response.data
   },
 
   delete: async (id: number): Promise<string> => {
-    const response = await api.delete(`/api/farms/${id}`)
+    const response = await api.delete(`/farms/${id}`)
     return response.data
   },
 
   searchByName: async (name: string): Promise<Farm[]> => {
-    const response = await api.get(`/api/farms/search?name=${encodeURIComponent(name)}`)
+    const response = await api.get(`/farms/search?name=${encodeURIComponent(name)}`)
     return response.data
   },
 
   getByCropType: async (cropType: string): Promise<Farm[]> => {
-    const response = await api.get(`/api/farms/crop-type/${encodeURIComponent(cropType)}`)
+    const response = await api.get(`/farms/crop-type/${encodeURIComponent(cropType)}`)
     return response.data
   },
 
   getByStaffId: async (staffId: number): Promise<Farm[]> => {
-    const response = await api.get(`/api/farms/staff/${staffId}`)
+    const response = await api.get(`/farms/staff/${staffId}`)
     return response.data
   },
 
@@ -66,12 +66,12 @@ export const farmApi = {
       plantingSchedule,
       growingConditions: growingConditions.toString()
     })
-    const response = await api.post(`/api/farms/${farmId}/track-crops?${params}`)
+    const response = await api.post(`/farms/${farmId}/track-crops?${params}`)
     return response.data
   },
 
   assignStaff: async (farmId: number, staffId: number): Promise<string> => {
-    const response = await api.post(`/api/farms/${farmId}/assign-staff/${staffId}`)
+    const response = await api.post(`/farms/${farmId}/assign-staff/${staffId}`)
     return response.data
   },
 
@@ -88,12 +88,12 @@ export const farmApi = {
       pesticideApplication: pesticideApplication.toString(),
       energyUsage: energyUsage.toString()
     })
-    const response = await api.post(`/api/farms/${farmId}/record-metrics?${params}`)
+    const response = await api.post(`/farms/${farmId}/record-metrics?${params}`)
     return response.data
   },
 
   getSustainabilityScore: async (farmId: number): Promise<number> => {
-    const response = await api.get(`/api/farms/${farmId}/sustainability-score`)
+    const response = await api.get(`/farms/${farmId}/sustainability-score`)
     return response.data
   }
 }
@@ -101,52 +101,52 @@ export const farmApi = {
 // Crop API - Matching your backend exactly
 export const cropApi = {
   getAll: async (): Promise<Crop[]> => {
-    const response = await api.get('/api/crops')
+    const response = await api.get('/crops')
     return response.data
   },
 
   getById: async (id: number): Promise<Crop> => {
-    const response = await api.get(`/api/crops/${id}`)
+    const response = await api.get(`/crops/${id}`)
     return response.data
   },
 
   create: async (crop: CropFormData): Promise<string> => {
-    const response = await api.post('/api/crops', crop)
+    const response = await api.post('/crops', crop)
     return response.data
   },
 
   update: async (id: number, crop: CropFormData): Promise<string> => {
-    const response = await api.put(`/api/crops/${id}`, crop)
+    const response = await api.put(`/crops/${id}`, crop)
     return response.data
   },
 
   delete: async (id: number): Promise<string> => {
-    const response = await api.delete(`/api/crops/${id}`)
+    const response = await api.delete(`/crops/${id}`)
     return response.data
   },
 
   getByCropType: async (cropType: string): Promise<Crop[]> => {
-    const response = await api.get(`/api/crops/type/${encodeURIComponent(cropType)}`)
+    const response = await api.get(`/crops/type/${encodeURIComponent(cropType)}`)
     return response.data
   },
 
   getByFarm: async (farmId: number): Promise<Crop[]> => {
-    const response = await api.get(`/api/crops/farm/${farmId}`)
+    const response = await api.get(`/crops/farm/${farmId}`)
     return response.data
   },
 
   getBySeason: async (season: string): Promise<Crop[]> => {
-    const response = await api.get(`/api/crops/season/${encodeURIComponent(season)}`)
+    const response = await api.get(`/crops/season/${encodeURIComponent(season)}`)
     return response.data
   },
 
   getByLocationRequirement: async (location: string): Promise<Crop[]> => {
-    const response = await api.get(`/api/crops/location-requirement/${encodeURIComponent(location)}`)
+    const response = await api.get(`/crops/location-requirement/${encodeURIComponent(location)}`)
     return response.data
   },
 
   getEligibleForLocation: async (location: string): Promise<Crop[]> => {
-    const response = await api.get(`/api/crops/eligible-for-location?location=${encodeURIComponent(location)}`)
+    const response = await api.get(`/crops/eligible-for-location?location=${encodeURIComponent(location)}`)
     return response.data
   },
 
@@ -155,7 +155,7 @@ export const cropApi = {
       yield: yield_.toString(),
       qualityRating: qualityRating.toString()
     })
-    const response = await api.post(`/api/crops/${cropId}/record-harvest?${params}`)
+    const response = await api.post(`/crops/${cropId}/record-harvest?${params}`)
     return response.data
   },
 
@@ -172,22 +172,22 @@ export const cropApi = {
       pesticideApplication: pesticideApplication.toString(),
       energyUsage: energyUsage.toString()
     })
-    const response = await api.post(`/api/crops/${cropId}/record-metrics?${params}`)
+    const response = await api.post(`/crops/${cropId}/record-metrics?${params}`)
     return response.data
   },
 
   getSustainabilityScore: async (cropId: number): Promise<number> => {
-    const response = await api.get(`/api/crops/${cropId}/sustainability-score`)
+    const response = await api.get(`/crops/${cropId}/sustainability-score`)
     return response.data
   },
 
   assignToFarm: async (cropId: number, farmId: number): Promise<string> => {
-    const response = await api.post(`/api/crops/${cropId}/assign-to-farm/${farmId}`)
+    const response = await api.post(`/crops/${cropId}/assign-to-farm/${farmId}`)
     return response.data
   },
 
   updatePlantingSchedule: async (cropId: number, newSchedule: string): Promise<string> => {
-    const response = await api.put(`/api/crops/${cropId}/update-planting-schedule?newSchedule=${encodeURIComponent(newSchedule)}`)
+    const response = await api.put(`/crops/${cropId}/update-planting-schedule?newSchedule=${encodeURIComponent(newSchedule)}`)
     return response.data
   }
 }
@@ -195,52 +195,52 @@ export const cropApi = {
 // Staff API - Matching your backend exactly
 export const staffApi = {
   getAll: async (): Promise<StaffAndVolunteer[]> => {
-    const response = await api.get('/api/staff')
+    const response = await api.get('/staff')
     return response.data
   },
 
   getById: async (id: number): Promise<StaffAndVolunteer> => {
-    const response = await api.get(`/api/staff/${id}`)
+    const response = await api.get(`/staff/${id}`)
     return response.data
   },
 
   create: async (staff: StaffFormData): Promise<string> => {
-    const response = await api.post('/api/staff', staff)
+    const response = await api.post('/staff', staff)
     return response.data
   },
 
   update: async (id: number, staff: StaffFormData): Promise<string> => {
-    const response = await api.put(`/api/staff/${id}`, staff)
+    const response = await api.put(`/staff/${id}`, staff)
     return response.data
   },
 
   delete: async (id: number): Promise<string> => {
-    const response = await api.delete(`/api/staff/${id}`)
+    const response = await api.delete(`/staff/${id}`)
     return response.data
   },
 
   getByRole: async (role: string): Promise<StaffAndVolunteer[]> => {
-    const response = await api.get(`/api/staff/role/${encodeURIComponent(role)}`)
+    const response = await api.get(`/staff/role/${encodeURIComponent(role)}`)
     return response.data
   },
 
   getByFarm: async (farmId: number): Promise<StaffAndVolunteer[]> => {
-    const response = await api.get(`/api/staff/farm/${farmId}`)
+    const response = await api.get(`/staff/farm/${farmId}`)
     return response.data
   },
 
   assignToFarm: async (staffId: number, farmId: number): Promise<string> => {
-    const response = await api.post(`/api/staff/${staffId}/assign-farm/${farmId}`)
+    const response = await api.post(`/staff/${staffId}/assign-farm/${farmId}`)
     return response.data
   },
 
   updateWorkHours: async (staffId: number, workHours: number): Promise<string> => {
-    const response = await api.put(`/api/staff/${staffId}/update-work-hours?workHours=${workHours}`)
+    const response = await api.put(`/staff/${staffId}/update-work-hours?workHours=${workHours}`)
     return response.data
   },
 
   updateTask: async (staffId: number, task: string): Promise<string> => {
-    const response = await api.put(`/api/staff/${staffId}/update-task?task=${encodeURIComponent(task)}`)
+    const response = await api.put(`/staff/${staffId}/update-task?task=${encodeURIComponent(task)}`)
     return response.data
   }
 }
@@ -248,53 +248,53 @@ export const staffApi = {
 // Inventory API - Matching your backend exactly
 export const inventoryApi = {
   getAll: async (): Promise<Inventory[]> => {
-    const response = await api.get('/api/inventory')
+    const response = await api.get('/inventory')
     return response.data
   },
 
   getById: async (id: number): Promise<Inventory> => {
-    const response = await api.get(`/api/inventory/${id}`)
+    const response = await api.get(`/inventory/${id}`)
     return response.data
   },
 
   getByProduceType: async (produceType: string): Promise<Inventory[]> => {
-    const response = await api.get(`/api/inventory/produce-type/${encodeURIComponent(produceType)}`)
+    const response = await api.get(`/inventory/produce-type/${encodeURIComponent(produceType)}`)
     return response.data
   },
 
   create: async (item: InventoryFormData): Promise<Inventory> => {
-    const response = await api.post('/api/inventory', item)
+    const response = await api.post('/inventory', item)
     return response.data
   },
 
   update: async (id: number, item: InventoryFormData): Promise<Inventory> => {
-    const response = await api.put(`/api/inventory/${id}`, item)
+    const response = await api.put(`/inventory/${id}`, item)
     return response.data
   },
 
   delete: async (id: number): Promise<void> => {
-    await api.delete(`/api/inventory/${id}`)
+    await api.delete(`/inventory/${id}`)
   },
 
   updateStock: async (inventoryId: number, harvestAmount: number): Promise<void> => {
-    await api.put(`/api/inventory/update-stock/${inventoryId}/${harvestAmount}`)
+    await api.put(`/inventory/update-stock/${inventoryId}/${harvestAmount}`)
   },
 
   linkToOrders: async (inventoryId: number, order: OrderFormData): Promise<void> => {
-    await api.post(`/api/inventory/link-to-orders/${inventoryId}`, order)
+    await api.post(`/inventory/link-to-orders/${inventoryId}`, order)
   },
 
   trackHarvestInInventory: async (harvestId: number, harvestYield: number): Promise<void> => {
-    await api.put(`/api/inventory/track-harvest/${harvestId}/${harvestYield}`)
+    await api.put(`/inventory/track-harvest/${harvestId}/${harvestYield}`)
   },
 
   checkAvailability: async (inventoryId: number, requiredQuantity: number): Promise<boolean> => {
-    const response = await api.get(`/api/inventory/check-availability/${inventoryId}/${requiredQuantity}`)
+    const response = await api.get(`/inventory/check-availability/${inventoryId}/${requiredQuantity}`)
     return response.data
   },
 
   updateQuantityAfterOrder: async (inventoryId: number, orderedQuantity: number): Promise<boolean> => {
-    const response = await api.put(`/api/inventory/update-quantity/${inventoryId}/${orderedQuantity}`)
+    const response = await api.put(`/inventory/update-quantity/${inventoryId}/${orderedQuantity}`)
     return response.data
   }
 }
@@ -302,37 +302,37 @@ export const inventoryApi = {
 // Orders API - Matching your backend exactly
 export const orderApi = {
   getAll: async (): Promise<Order[]> => {
-    const response = await api.get('/api/orders')
+    const response = await api.get('/orders')
     return response.data
   },
 
   getById: async (id: number): Promise<Order> => {
-    const response = await api.get(`/api/orders/${id}`)
+    const response = await api.get(`/orders/${id}`)
     return response.data
   },
 
   create: async (order: OrderFormData): Promise<string> => {
-    const response = await api.post('/api/orders', order)
+    const response = await api.post('/orders', order)
     return response.data
   },
 
   updateStatus: async (orderId: number, deliveryStatus: string): Promise<string> => {
-    const response = await api.put(`/api/orders/${orderId}/update-status?deliveryStatus=${encodeURIComponent(deliveryStatus)}`)
+    const response = await api.put(`/orders/${orderId}/update-status?deliveryStatus=${encodeURIComponent(deliveryStatus)}`)
     return response.data
   },
 
   placeOrder: async (orderId: number): Promise<string> => {
-    const response = await api.post(`/api/orders/${orderId}/place-order`)
+    const response = await api.post(`/orders/${orderId}/place-order`)
     return response.data
   },
 
   cancelOrder: async (orderId: number): Promise<string> => {
-    const response = await api.post(`/api/orders/${orderId}/cancel-order`)
+    const response = await api.post(`/orders/${orderId}/cancel-order`)
     return response.data
   },
 
   getByStatus: async (deliveryStatus: string): Promise<Order[]> => {
-    const response = await api.get(`/api/orders/status/${encodeURIComponent(deliveryStatus)}`)
+    const response = await api.get(`/orders/status/${encodeURIComponent(deliveryStatus)}`)
     return response.data
   }
 }
@@ -340,44 +340,44 @@ export const orderApi = {
 // Clients API - Matching your backend exactly
 export const clientApi = {
   getAll: async (): Promise<Client[]> => {
-    const response = await api.get('/api/clients')
+    const response = await api.get('/clients')
     return response.data
   },
 
   getById: async (id: number): Promise<Client> => {
-    const response = await api.get(`/api/clients/${id}`)
+    const response = await api.get(`/clients/${id}`)
     return response.data
   },
 
   create: async (client: ClientFormData): Promise<string> => {
-    const response = await api.post('/api/clients', client)
+    const response = await api.post('/clients', client)
     return response.data
   },
 
   update: async (id: number, client: ClientFormData): Promise<string> => {
-    const response = await api.put(`/api/clients/${id}`, client)
+    const response = await api.put(`/clients/${id}`, client)
     return response.data
   },
 
   delete: async (id: number): Promise<string> => {
-    const response = await api.delete(`/api/clients/${id}`)
+    const response = await api.delete(`/clients/${id}`)
     return response.data
   },
 
   assignOrder: async (clientId: number, order: OrderFormData): Promise<string> => {
-    const response = await api.post(`/api/clients/${clientId}/assign-order`, order)
+    const response = await api.post(`/clients/${clientId}/assign-order`, order)
     return response.data
   },
 
   updatePreferences: async (clientId: number, orderPreferences: string): Promise<string> => {
-    const response = await api.put(`/api/clients/${clientId}/preferences`, orderPreferences, {
+    const response = await api.put(`/clients/${clientId}/preferences`, orderPreferences, {
       headers: { 'Content-Type': 'text/plain' }
     })
     return response.data
   },
 
   getByContactInfo: async (contactInfo: string): Promise<Client[]> => {
-    const response = await api.get(`/api/clients/contact-info/${encodeURIComponent(contactInfo)}`)
+    const response = await api.get(`/clients/contact-info/${encodeURIComponent(contactInfo)}`)
     return response.data
   },
 
@@ -386,12 +386,12 @@ export const clientApi = {
       inventoryId: inventoryId.toString(),
       quantityOrdered: quantityOrdered.toString()
     })
-    const response = await api.post(`/api/clients/${clientId}/place-order?${params}`)
+    const response = await api.post(`/clients/${clientId}/place-order?${params}`)
     return response.data
   },
 
   handleDeliveryReceipt: async (orderId: number, inventoryId: number): Promise<string> => {
-    const response = await api.put(`/api/clients/orders/${orderId}/deliver?inventoryId=${inventoryId}`)
+    const response = await api.put(`/clients/orders/${orderId}/deliver?inventoryId=${inventoryId}`)
     return response.data
   }
 }
@@ -399,27 +399,27 @@ export const clientApi = {
 // Harvest API - Matching your backend exactly
 export const harvestApi = {
   getAll: async (): Promise<Harvest[]> => {
-    const response = await api.get('/api/harvests')
+    const response = await api.get('/harvests')
     return response.data
   },
 
   getById: async (id: number): Promise<Harvest> => {
-    const response = await api.get(`/api/harvests/${id}`)
+    const response = await api.get(`/harvests/${id}`)
     return response.data
   },
 
   create: async (harvest: HarvestFormData): Promise<string> => {
-    const response = await api.post('/api/harvests', harvest)
+    const response = await api.post('/harvests', harvest)
     return response.data
   },
 
   update: async (id: number, harvest: HarvestFormData): Promise<string> => {
-    const response = await api.put(`/api/harvests/${id}`, harvest)
+    const response = await api.put(`/harvests/${id}`, harvest)
     return response.data
   },
 
   delete: async (id: number): Promise<string> => {
-    const response = await api.delete(`/api/harvests/${id}`)
+    const response = await api.delete(`/harvests/${id}`)
     return response.data
   },
 
@@ -429,53 +429,53 @@ export const harvestApi = {
       yield: yield_.toString(),
       qualityRating: qualityRating.toString()
     })
-    const response = await api.post(`/api/harvests/record-yield?${params}`)
+    const response = await api.post(`/harvests/record-yield?${params}`)
     return response.data
   },
 
   getByDateRange: async (startDate: string, endDate: string): Promise<Harvest[]> => {
     const params = new URLSearchParams({ startDate, endDate })
-    const response = await api.get(`/api/harvests/date-range?${params}`)
+    const response = await api.get(`/harvests/date-range?${params}`)
     return response.data
   },
 
   getByCrop: async (cropId: number): Promise<Harvest[]> => {
-    const response = await api.get(`/api/harvests/crop/${cropId}`)
+    const response = await api.get(`/harvests/crop/${cropId}`)
     return response.data
   },
 
   getByFarm: async (farmId: number): Promise<Harvest[]> => {
-    const response = await api.get(`/api/harvests/farm/${farmId}`)
+    const response = await api.get(`/harvests/farm/${farmId}`)
     return response.data
   },
 
   getByInventory: async (inventoryId: number): Promise<Harvest[]> => {
-    const response = await api.get(`/api/harvests/inventory/${inventoryId}`)
+    const response = await api.get(`/harvests/inventory/${inventoryId}`)
     return response.data
   },
 
   updateQuality: async (harvestId: number, qualityRating: number): Promise<string> => {
-    const response = await api.put(`/api/harvests/${harvestId}/update-quality?qualityRating=${qualityRating}`)
+    const response = await api.put(`/harvests/${harvestId}/update-quality?qualityRating=${qualityRating}`)
     return response.data
   },
 
   updateYield: async (harvestId: number, yield_: number): Promise<string> => {
-    const response = await api.put(`/api/harvests/${harvestId}/update-yield?yield=${yield_}`)
+    const response = await api.put(`/harvests/${harvestId}/update-yield?yield=${yield_}`)
     return response.data
   },
 
   getTotalYield: async (): Promise<number> => {
-    const response = await api.get('/api/harvests/total-yield')
+    const response = await api.get('/harvests/total-yield')
     return response.data
   },
 
   getMostRecent: async (limit: number): Promise<Harvest[]> => {
-    const response = await api.get(`/api/harvests/most-recent?limit=${limit}`)
+    const response = await api.get(`/harvests/most-recent?limit=${limit}`)
     return response.data
   },
 
   transferToInventory: async (harvestId: number, inventoryId: number): Promise<string> => {
-    const response = await api.post(`/api/harvests/${harvestId}/transfer-to-inventory/${inventoryId}`)
+    const response = await api.post(`/harvests/${harvestId}/transfer-to-inventory/${inventoryId}`)
     return response.data
   }
 }
@@ -483,27 +483,27 @@ export const harvestApi = {
 // Sustainability API - Matching your backend exactly
 export const sustainabilityApi = {
   getAll: async (): Promise<SustainabilityMetric[]> => {
-    const response = await api.get('/api/sustainability/metrics')
+    const response = await api.get('/sustainability/metrics')
     return response.data
   },
 
   getById: async (id: number): Promise<SustainabilityMetric> => {
-    const response = await api.get(`/api/sustainability/metrics/${id}`)
+    const response = await api.get(`/sustainability/metrics/${id}`)
     return response.data
   },
 
   create: async (metric: SustainabilityMetricFormData): Promise<SustainabilityMetric> => {
-    const response = await api.post('/api/sustainability/metrics', metric)
+    const response = await api.post('/sustainability/metrics', metric)
     return response.data
   },
 
   update: async (id: number, metric: SustainabilityMetricFormData): Promise<SustainabilityMetric> => {
-    const response = await api.put(`/api/sustainability/metrics/${id}`, metric)
+    const response = await api.put(`/sustainability/metrics/${id}`, metric)
     return response.data
   },
 
   delete: async (id: number): Promise<void> => {
-    await api.delete(`/api/sustainability/metrics/${id}`)
+    await api.delete(`/sustainability/metrics/${id}`)
   }
 }
 
